@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000';
+// Use Vercel environment variable in production, fallback to localhost for development
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -13,7 +14,7 @@ const isTokenValid = (token) => {
         if (!payloadBase64) return false;
         const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
         const payload = JSON.parse(payloadJson);
-        if (!payload.exp) return true; // no exp: treat as non-expiring
+        if (!payload.exp) return true;
         const nowSeconds = Math.floor(Date.now() / 1000);
         return payload.exp > nowSeconds;
     } catch {
@@ -21,14 +22,13 @@ const isTokenValid = (token) => {
     }
 };
 
-// Request interceptor to attach a *valid* JWT token.
+// Request interceptor to attach a valid JWT token
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         if (token && isTokenValid(token)) {
             config.headers.Authorization = `Bearer ${token}`;
         } else if (token && !isTokenValid(token)) {
-            // Clear invalid/expired tokens proactively.
             localStorage.removeItem('token');
         }
         return config;
@@ -36,7 +36,7 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Optional response interceptor: clear invalid token on 401.
+// Response interceptor to clear invalid token
 api.interceptors.response.use(
     (response) => response,
     (error) => {
