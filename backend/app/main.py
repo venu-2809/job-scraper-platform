@@ -13,18 +13,16 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Job Scraper API")
 
-origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
-
+# Enable CORS for all origins (needed for Vercel frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Create uploads directory if it doesn't exist
-import os
 os.makedirs("uploads", exist_ok=True)
 
 # Mount static files
