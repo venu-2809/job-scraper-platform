@@ -7,7 +7,7 @@ const Profile = () => {
     const [error, setError] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
     const [uploading, setUploading] = useState(false);
-
+    const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -92,7 +92,7 @@ const Profile = () => {
                 <div className="flex flex-col sm:flex-row items-center gap-6 mb-8 border-b pb-6">
                     <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
                         {profile.profile_image ? (
-                            <img src={`http://localhost:8000/${profile.profile_image}`} alt="Profile" className="w-full h-full object-cover" />
+                            <img src={`${API_URL}/uploads/${profile.profile_image}`} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
                             <span className="text-gray-500 text-sm">No Image</span>
                         )}
