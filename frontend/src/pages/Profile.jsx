@@ -5,6 +5,8 @@ const Profile = () => {
     const [profile, setProfile] = useState({ name: '', email: '', profile_image: '' });
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -45,6 +47,41 @@ const Profile = () => {
         }
     };
 
+    const handleFileSelect = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setSelectedFile(file);
+        }
+    };
+
+    const handleUploadImage = async () => {
+        if (!selectedFile) return;
+        
+        setUploading(true);
+        setMessage('');
+        setError('');
+        
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        
+        try {
+            await api.post('/profile/image', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            // Refresh profile to get updated image
+            const res = await api.get('/profile');
+            setProfile(res.data);
+            setSelectedFile(null);
+            setMessage('Profile image uploaded successfully!');
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Failed to upload image');
+        } finally {
+            setUploading(false);
+        }
+    };
+
     return (
         <div className="container mx-auto px-4 py-8 max-w-2xl">
             <h1 className="text-3xl font-bold mb-6 text-gray-800">My Profile</h1>
@@ -60,13 +97,30 @@ const Profile = () => {
                             <span className="text-gray-500 text-sm">No Image</span>
                         )}
                     </div>
-                    <div>
-                        <button 
-                            onClick={handleDeleteImage}
-                            className="bg-red-500 text-white px-4 py-2 rounded text-sm hover:bg-red-600 transition"
-                        >
-                            Delete Image
-                        </button>
+                    <div className="flex flex-col gap-3">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                        />
+                        {selectedFile && (
+                            <button
+                                onClick={handleUploadImage}
+                                disabled={uploading}
+                                className="bg-gradient-to-r from-blue-600 to-slate-600 text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-slate-700 transition-all duration-200 font-medium disabled:opacity-50"
+                            >
+                                {uploading ? 'Uploading...' : 'Upload Image'}
+                            </button>
+                        )}
+                        {profile.profile_image && (
+                            <button 
+                                onClick={handleDeleteImage}
+                                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all duration-200 font-medium"
+                            >
+                                Delete Image
+                            </button>
+                        )}
                     </div>
                 </div>
 
